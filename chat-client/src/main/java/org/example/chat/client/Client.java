@@ -71,7 +71,7 @@ public class Client {
                 }
             }
 
-        }).start();
+        }).start();   // запускаем поток!)
     }
 
     /**
