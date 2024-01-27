@@ -13,6 +13,7 @@ public class Client {
     private BufferedWriter bufferedWriter;
     private final String name;
 
+
     //endregion
 
     public Client(Socket socket, String name) {
@@ -49,7 +50,6 @@ public class Client {
         }
 
     }
-
 
     /**
      * Слушатель для входящих сообщений

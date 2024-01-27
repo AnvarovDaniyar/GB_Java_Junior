@@ -4,6 +4,15 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
+/**
+ * 1. Разработайте простой чат на основе сокетов как это было показано на самом семинаре.
+ *    Ваше приложение должно включать в себя сервер, который принимает сообщения от клиентов и
+ *    пересылает их всем участникам чата. (Вы можете просто переписать наше приложение с семинара,
+ *    этого будет вполне достаточно)
+ * 2*. Подумайте, как организовать отправку ЛИЧНЫХ сообщений в контексте нашего чата,
+ *     доработайте поддержку отправки личных сообщений, небольшую подсказку я дал в конце семинара.
+ */
+
 public class ClientManager implements Runnable {
 
     //region Fields
@@ -32,6 +41,7 @@ public class ClientManager implements Runnable {
         }
     }
 
+
     /**
      * Удаление клиента из коллекции
      */
@@ -46,7 +56,7 @@ public class ClientManager implements Runnable {
      * метод run() - выполняется в отдельном потоке
      * чтение данных и отправка
      */
-    @Override
+   /* @Override
     public void run() {
         String massageFromClient;
 
@@ -61,6 +71,44 @@ public class ClientManager implements Runnable {
                 }
                 // Отправка данных всем слушателям
                 broadcastMessage(massageFromClient);
+
+            } catch (IOException e) {
+                closeEverything(socket, bufferedReader, bufferedWriter);
+                break;
+            }
+        }
+
+    }*/
+
+    /**v2
+     * добавляем проверку приватного сообщения ("/private" в начале сообщения)
+     */
+    @Override
+    public void run() {
+        String massageFromClient;
+
+        while (socket.isConnected()) {
+            try {
+                // Чтение данных
+                massageFromClient = bufferedReader.readLine();    // читаем сообщение от клиента
+
+                if (massageFromClient == null) {
+                    // для  macOS (при дисконнекте клиента macOS выдаст null)
+                    closeEverything(socket, bufferedReader, bufferedWriter);
+                    break;
+                }
+                if (massageFromClient.split(" ")[1].equals("/private")) {
+                    String[] parts = massageFromClient.split(" ");
+                    if (parts.length >= 3) {
+                        String recipient = parts[2];
+                        String privateMessage = parts[3];
+                        sendPrivateMessage(recipient, privateMessage);  // вызываем метод для отправки личного сообщения
+                    }
+                } else {
+                    // Отправка данных всем слушателям
+                    broadcastMessage(massageFromClient);
+                }
+
             } catch (IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
@@ -68,7 +116,6 @@ public class ClientManager implements Runnable {
         }
 
     }
-
     /**
      * Отправка сообщения всем слушателям
      *
@@ -85,6 +132,26 @@ public class ClientManager implements Runnable {
             }
             catch (IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
+            }
+        }
+    }
+
+    /** v2
+     * Метод для отправки личного сообщения
+     * @param recipient
+     * @param message
+     */
+    private void sendPrivateMessage(String recipient, String message) {
+        for (ClientManager client : clients) {
+            if (client.name.equals(recipient)) {
+                try {
+                    client.bufferedWriter.write(name + " (private): " + message);
+                    client.bufferedWriter.newLine();
+                    client.bufferedWriter.flush();
+                } catch (IOException e) {
+                    closeEverything(socket, bufferedReader, bufferedWriter);
+                }
+                break;
             }
         }
     }
