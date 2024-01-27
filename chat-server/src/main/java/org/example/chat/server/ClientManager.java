@@ -101,7 +101,7 @@ public class ClientManager implements Runnable {
                     String[] parts = massageFromClient.split(" ");
                     if (parts.length >= 3) {
                         String recipient = parts[2];
-                        String privateMessage = parts[3];
+                        String privateMessage = massageFromClient.substring(parts[0].length() + parts[1].length() + parts[3].length() + 2);
                         sendPrivateMessage(recipient, privateMessage);  // вызываем метод для отправки личного сообщения
                     }
                 } else {
